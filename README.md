@@ -12,4 +12,4 @@ This project is licensed under the [PolyForm Noncommercial License
 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) that prohibits
 commercial use of this product.
 If you would like to use this product in a commercial environment, kindly
-contact us on [legal@merqury.eu](mailto:legal@merqury.eu).
+contact us on [info@merqury.eu](mailto:info@merqury.eu).
