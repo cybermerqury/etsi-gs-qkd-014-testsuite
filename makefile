@@ -22,5 +22,26 @@ run_tests:
 	ETSI_014_TEST_SUITE_TLS_ADD_SLAVE_SAE_CERT=$(ROOT_DIR)/certs/sae_003.pem \
 	cargo test
 
+run_functional_tests:
+	@                                                                        \
+	ETSI_014_TEST_SUITE_BASE_URL=https://localhost:8443/api/v1/keys          \
+	ETSI_014_TEST_SUITE_TLS_ROOT_CRT=$(ROOT_DIR)/certs/root.crt              \
+	ETSI_014_TEST_SUITE_MASTER_SAE_ID=sae_001                                \
+	ETSI_014_TEST_SUITE_TLS_MASTER_SAE_CERT=$(ROOT_DIR)/certs/sae_001.pem    \
+	ETSI_014_TEST_SUITE_SLAVE_SAE_ID=sae_002                                 \
+	ETSI_014_TEST_SUITE_TLS_SLAVE_SAE_CERT=$(ROOT_DIR)/certs/sae_002.pem     \
+	ETSI_014_TEST_SUITE_ADD_SLAVE_SAE_ID=sae_003                             \
+	ETSI_014_TEST_SUITE_TLS_ADD_SLAVE_SAE_CERT=$(ROOT_DIR)/certs/sae_003.pem \
+	cargo test --test functional
+
 run_validation_tests:
-	@echo "Hello"
+	@                                                                        \
+	ETSI_014_TEST_SUITE_BASE_URL=https://localhost:8443/api/v1/keys          \
+	ETSI_014_TEST_SUITE_TLS_ROOT_CRT=$(ROOT_DIR)/certs/root.crt              \
+	ETSI_014_TEST_SUITE_MASTER_SAE_ID=sae_001                                \
+	ETSI_014_TEST_SUITE_TLS_MASTER_SAE_CERT=$(ROOT_DIR)/certs/sae_001.pem    \
+	ETSI_014_TEST_SUITE_SLAVE_SAE_ID=sae_002                                 \
+	ETSI_014_TEST_SUITE_TLS_SLAVE_SAE_CERT=$(ROOT_DIR)/certs/sae_002.pem     \
+	ETSI_014_TEST_SUITE_ADD_SLAVE_SAE_ID=sae_003                             \
+	ETSI_014_TEST_SUITE_TLS_ADD_SLAVE_SAE_CERT=$(ROOT_DIR)/certs/sae_003.pem \
+	cargo test --test validation
