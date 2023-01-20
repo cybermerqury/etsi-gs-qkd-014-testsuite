@@ -9,6 +9,7 @@ mod models;
 use base64::Engine;
 use common::config::CONFIG;
 use models::{error_message::ErrorMessage, key, status::Status};
+use pretty_assertions::assert_eq;
 use reqwest::{blocking::Response, Method, StatusCode};
 use serde_json::json;
 use test_case::test_case;
