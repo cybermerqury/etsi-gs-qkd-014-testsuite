@@ -6,8 +6,10 @@ extern crate lazy_static;
 mod common;
 mod models;
 
+use base64::Engine;
 use common::config::CONFIG;
-use models::key;
+use models::{key, status::Status};
+use pretty_assertions::assert_eq;
 use reqwest::{Method, StatusCode};
 use serde_json::json;
 use test_case::test_case;
@@ -191,4 +193,65 @@ fn additional_slave_sae_ids(request_method: Method) {
         };
 
     assert_eq!(retrieved_key_by_id, key);
+}
+
+#[test_case(Method::GET; "Using GET")]
+#[test_case(Method::POST; "Using POST")]
+fn default_values_match_status_reply(request_method: Method) {
+    let status_url =
+        format!("{}/{}/status", CONFIG.base_url, CONFIG.slave_sae_id);
+    let enc_keys_url =
+        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
+    let client = common::build_client(&CONFIG.master_sae_crt);
+
+    // Request status
+    let status_response = client.get(&status_url).send().unwrap();
+    // Request a key with the default values
+    let enc_keys_response = match request_method {
+        Method::GET => {
+            client.request(request_method.clone(), enc_keys_url).send().unwrap()
+        }
+        Method::POST => {
+            client.request(request_method.clone(), enc_keys_url).send().unwrap()
+        }
+        _ => {
+            panic!("Only 'GET' and 'POST' methods are supported")
+        }
+    };
+
+    // Ensure both calls are a success
+    assert!(status_response.status().is_success());
+    assert!(enc_keys_response.status().is_success());
+
+    // Compare the default number of keys and their size
+    let status_body = match status_response.json::<Status>() {
+        Ok(val) => val,
+        Err(e) => {
+            panic!("Invalid '/status' response given. Error: {:?}", e);
+        }
+    };
+
+    let key_container = match enc_keys_response.json::<key::KeyContainer>() {
+        Ok(parsed_body) => parsed_body,
+        Err(e) => {
+            panic!("Invalid response given. Error: {:?}", e);
+        }
+    };
+
+    // The default number of keys is 1.
+    assert_eq!(key_container.keys.len(), 1);
+
+    let decoded_key = match base64::engine::general_purpose::STANDARD
+        .decode(key_container.keys[0].key.as_ref().unwrap())
+    {
+        Ok(val) => val,
+        Err(e) => panic!("Failed to decode key value. Error: {:?}", e),
+    };
+
+    assert_eq!(
+        // base64 returns a vector of bytes, key_size is in bits, hence the
+        // conversion.
+        i32::try_from(decoded_key.len()).unwrap() * 8,
+        status_body.key_size
+    );
 }
