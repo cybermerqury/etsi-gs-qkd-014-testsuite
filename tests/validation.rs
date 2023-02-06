@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: © 2023 Merqury Cybersecurity Ltd <info@merqury.eu>
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 #[macro_use]
 extern crate lazy_static;
 
@@ -8,7 +9,8 @@ mod models;
 
 use base64::Engine;
 use common::config::CONFIG;
-use models::{error_message::ErrorMessage, key};
+use models::{error_message::ErrorMessage, key, status::Status};
+use pretty_assertions::assert_eq;
 use reqwest::{blocking::Response, Method, StatusCode};
 use serde_json::json;
 use test_case::test_case;
@@ -326,4 +328,25 @@ fn key_body(request_method: Method) {
         assert!(decoding_result.is_ok());
         assert_eq!(decoding_result.unwrap().len(), key_size_bytes);
     }
+}
+
+#[test]
+fn status() {
+    let client = common::build_client(&CONFIG.master_sae_crt);
+    let url = format!("{}/{}/status", CONFIG.base_url, CONFIG.slave_sae_id);
+
+    let response = client.get(&url).send().unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = response.text().unwrap();
+
+    let parsed_reply = match serde_json::from_str::<Status>(&body) {
+        Ok(val) => val,
+        Err(e) => {
+            panic!("Malformed JSON body returned. Error:'{:?}'", e)
+        }
+    };
+
+    assert_eq!(parsed_reply.master_sae_id, CONFIG.master_sae_id);
+    assert_eq!(parsed_reply.slave_sae_id, CONFIG.slave_sae_id);
 }
