@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: © 2023 Merqury Cybersecurity Ltd <info@merqury.eu>
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 use std::env;
 
 static ENV_BASE_URL: &str = "ETSI_014_TEST_SUITE_BASE_URL";
