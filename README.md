@@ -79,3 +79,9 @@ This project is licensed under the [PolyForm Noncommercial License
 commercial use of this product.
 If you would like to use this product in a commercial environment, kindly
 contact us on [info@merqury.eu](mailto:info@merqury.eu).
+
+# Acknowledgements
+
+This software has been developed in the project EQUO (European QUantum
+ecOsystems) which is funded by the European Commission in the Digital Europe
+Programme under the grant agreement No 101091561.
