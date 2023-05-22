@@ -12,7 +12,8 @@ build:
 
 run_tests:
 	@                                                                        \
-	ETSI_014_TEST_SUITE_BASE_URL=https://localhost:8443/api/v1/keys          \
+	ETSI_014_TEST_SUITE_BASE_SERVER_URL=https://localhost:8443/api/v1/keys   \
+	ETSI_014_TEST_SUITE_BASE_CLIENT_URL=https://localhost:8443/api/v1/keys   \
 	ETSI_014_TEST_SUITE_TLS_ROOT_CRT=$(ROOT_DIR)/certs/root.crt              \
 	ETSI_014_TEST_SUITE_MASTER_SAE_ID=sae_001                                \
 	ETSI_014_TEST_SUITE_TLS_MASTER_SAE_CERT=$(ROOT_DIR)/certs/sae_001.pem    \
@@ -24,7 +25,8 @@ run_tests:
 
 run_functional_tests:
 	@                                                                        \
-	ETSI_014_TEST_SUITE_BASE_URL=https://localhost:8443/api/v1/keys          \
+	ETSI_014_TEST_SUITE_BASE_SERVER_URL=https://localhost:8443/api/v1/keys   \
+	ETSI_014_TEST_SUITE_BASE_CLIENT_URL=https://localhost:8443/api/v1/keys   \
 	ETSI_014_TEST_SUITE_TLS_ROOT_CRT=$(ROOT_DIR)/certs/root.crt              \
 	ETSI_014_TEST_SUITE_MASTER_SAE_ID=sae_001                                \
 	ETSI_014_TEST_SUITE_TLS_MASTER_SAE_CERT=$(ROOT_DIR)/certs/sae_001.pem    \
@@ -36,7 +38,8 @@ run_functional_tests:
 
 run_validation_tests:
 	@                                                                        \
-	ETSI_014_TEST_SUITE_BASE_URL=https://localhost:8443/api/v1/keys          \
+	ETSI_014_TEST_SUITE_BASE_SERVER_URL=https://localhost:8443/api/v1/keys   \
+	ETSI_014_TEST_SUITE_BASE_CLIENT_URL=https://localhost:8443/api/v1/keys   \
 	ETSI_014_TEST_SUITE_TLS_ROOT_CRT=$(ROOT_DIR)/certs/root.crt              \
 	ETSI_014_TEST_SUITE_MASTER_SAE_ID=sae_001                                \
 	ETSI_014_TEST_SUITE_TLS_MASTER_SAE_CERT=$(ROOT_DIR)/certs/sae_001.pem    \
