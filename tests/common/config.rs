@@ -3,7 +3,8 @@
 
 use std::env;
 
-static ENV_BASE_URL: &str = "ETSI_014_TEST_SUITE_BASE_URL";
+static ENV_BASE_SERVER_URL: &str = "ETSI_014_TEST_SUITE_BASE_SERVER_URL";
+static ENV_BASE_CLIENT_URL: &str = "ETSI_014_TEST_SUITE_BASE_CLIENT_URL";
 static ENV_TLS_ROOT_CRT: &str = "ETSI_014_TEST_SUITE_TLS_ROOT_CRT";
 static ENV_MASTER_SAE_ID: &str = "ETSI_014_TEST_SUITE_MASTER_SAE_ID";
 static ENV_TLS_MASTER_SAE_CERT: &str =
@@ -15,7 +16,8 @@ static ENV_TLS_ADD_SLAVE_SAE_CERT: &str =
 static ENV_ADD_SLAVE_SAE_ID: &str = "ETSI_014_TEST_SUITE_ADD_SLAVE_SAE_ID";
 
 pub struct Config {
-    pub base_url: String,
+    pub base_server_url: String,
+    pub base_client_url: String,
     pub root_crt: String,
     pub master_sae_id: String,
     pub master_sae_crt: String,
@@ -28,7 +30,8 @@ pub struct Config {
 impl Config {
     pub fn new() -> Self {
         Self {
-            base_url: Self::extract_string_value(ENV_BASE_URL),
+            base_server_url: Self::extract_string_value(ENV_BASE_SERVER_URL),
+            base_client_url: Self::extract_string_value(ENV_BASE_CLIENT_URL),
             root_crt: Self::extract_string_value(ENV_TLS_ROOT_CRT),
             master_sae_id: Self::extract_string_value(ENV_MASTER_SAE_ID),
             master_sae_crt: Self::extract_string_value(ENV_TLS_MASTER_SAE_CERT),

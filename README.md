@@ -56,7 +56,8 @@ tests.
 
 | Environment variable                     | Description                                                            |
 |------------------------------------------|------------------------------------------------------------------------|
-ETSI_014_TEST_SUITE_BASE_URL               | Base URL of the server to test.                                        |
+ETSI_014_TEST_SUITE_BASE_SERVER_URL        | Base URL of the server to test.                                        |
+ETSI_014_TEST_SUITE_BASE_CLIENT_URL        | Base URL of the client to test.                                        |
 ETSI_014_TEST_SUITE_TLS_ROOT_CRT           | Path to the root certificate.                                          |
 ETSI_014_TEST_SUITE_MASTER_SAE_ID          | Name of the master SAE ID.                                             |
 ETSI_014_TEST_SUITE_TLS_MASTER_SAE_CERT    | Path to the certificate to associate with the master SAE ID.           |

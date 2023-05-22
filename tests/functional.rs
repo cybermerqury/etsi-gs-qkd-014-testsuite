@@ -18,10 +18,14 @@ use test_case::test_case;
 #[test_case(Method::GET; "Using GET")]
 #[test_case(Method::POST; "Using POST")]
 fn successful_key_request_and_retrieval(request_method: Method) {
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
-    let dec_keys_url =
-        format!("{}/{}/dec_keys", CONFIG.base_url, CONFIG.master_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.base_server_url, CONFIG.slave_sae_id
+    );
+    let dec_keys_url = format!(
+        "{}/{}/dec_keys",
+        CONFIG.base_client_url, CONFIG.master_sae_id
+    );
     let master_client = common::build_client(&CONFIG.master_sae_crt);
     let slave_client = common::build_client(&CONFIG.slave_sae_crt);
 
@@ -87,10 +91,14 @@ fn successful_key_request_and_retrieval(request_method: Method) {
 #[test_case(Method::GET; "Using GET")]
 #[test_case(Method::POST; "Using POST")]
 fn unauthorized_access(request_method: Method) {
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
-    let dec_keys_url =
-        format!("{}/{}/dec_keys", CONFIG.base_url, CONFIG.master_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.base_server_url, CONFIG.slave_sae_id
+    );
+    let dec_keys_url = format!(
+        "{}/{}/dec_keys",
+        CONFIG.base_client_url, CONFIG.master_sae_id
+    );
     let master_client = common::build_client(&CONFIG.master_sae_crt);
     let unauthorized_client = common::build_client(&CONFIG.add_slave_sae_crt);
 
@@ -143,10 +151,14 @@ fn unauthorized_access(request_method: Method) {
 #[test_case(Method::GET; "Using GET")]
 #[test_case(Method::POST; "Using POST")]
 fn additional_slave_sae_ids(request_method: Method) {
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
-    let dec_keys_url =
-        format!("{}/{}/dec_keys", CONFIG.base_url, CONFIG.master_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.base_server_url, CONFIG.slave_sae_id
+    );
+    let dec_keys_url = format!(
+        "{}/{}/dec_keys",
+        CONFIG.base_client_url, CONFIG.master_sae_id
+    );
     let master_client = common::build_client(&CONFIG.master_sae_crt);
     let additional_slave_client =
         common::build_client(&CONFIG.add_slave_sae_crt);
@@ -200,9 +212,11 @@ fn additional_slave_sae_ids(request_method: Method) {
 #[test_case(Method::POST; "Using POST")]
 fn default_values_match_status_reply(request_method: Method) {
     let status_url =
-        format!("{}/{}/status", CONFIG.base_url, CONFIG.slave_sae_id);
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
+        format!("{}/{}/status", CONFIG.base_server_url, CONFIG.slave_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.base_server_url, CONFIG.slave_sae_id
+    );
     let client = common::build_client(&CONFIG.master_sae_crt);
 
     // Request status
