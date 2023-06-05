@@ -12,12 +12,13 @@ use common::config::CONFIG;
 use models::{key, status::Status};
 use pretty_assertions::assert_eq;
 use reqwest::{Method, StatusCode};
+use rstest::rstest;
 use serde_json::json;
-use test_case::test_case;
 
-#[test_case(Method::GET; "Using GET")]
-#[test_case(Method::POST; "Using POST")]
-fn successful_key_request_and_retrieval(request_method: Method) {
+#[rstest]
+#[case(Method::GET)] // Using GET
+#[case(Method::POST)] // Using POST
+fn successful_key_request_and_retrieval(#[case] request_method: Method) {
     let enc_keys_url =
         format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
     let dec_keys_url =
@@ -84,9 +85,10 @@ fn successful_key_request_and_retrieval(request_method: Method) {
     assert_eq!(retrieved_key_by_id, returned_keys);
 }
 
-#[test_case(Method::GET; "Using GET")]
-#[test_case(Method::POST; "Using POST")]
-fn unauthorized_access(request_method: Method) {
+#[rstest]
+#[case(Method::GET)] // Using GET
+#[case(Method::POST)] // Using POST
+fn unauthorized_access(#[case] request_method: Method) {
     let enc_keys_url =
         format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
     let dec_keys_url =
@@ -140,9 +142,10 @@ fn unauthorized_access(request_method: Method) {
     assert_eq!(dec_keys_response.status(), StatusCode::UNAUTHORIZED);
 }
 
-#[test_case(Method::GET; "Using GET")]
-#[test_case(Method::POST; "Using POST")]
-fn additional_slave_sae_ids(request_method: Method) {
+#[rstest]
+#[case(Method::GET)] // Using GET
+#[case(Method::POST)] // Using POST
+fn additional_slave_sae_ids(#[case] request_method: Method) {
     let enc_keys_url =
         format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
     let dec_keys_url =
@@ -196,9 +199,10 @@ fn additional_slave_sae_ids(request_method: Method) {
     assert_eq!(retrieved_key_by_id, key);
 }
 
-#[test_case(Method::GET; "Using GET")]
-#[test_case(Method::POST; "Using POST")]
-fn default_values_match_status_reply(request_method: Method) {
+#[rstest]
+#[case(Method::GET)] // Using GET
+#[case(Method::POST)] // Using POST
+fn default_values_match_status_reply(#[case] request_method: Method) {
     let status_url =
         format!("{}/{}/status", CONFIG.base_url, CONFIG.slave_sae_id);
     let enc_keys_url =
