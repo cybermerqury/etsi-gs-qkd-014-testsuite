@@ -12,14 +12,15 @@ use common::config::CONFIG;
 use models::{error_message::ErrorMessage, key, status::Status};
 use pretty_assertions::assert_eq;
 use reqwest::{blocking::Response, Method, StatusCode};
+use rstest::rstest;
 use serde_json::json;
-use test_case::test_case;
 use uuid::Uuid;
 
-#[test_case("0"; "Zero key size")]
-#[test_case("-8"; "Negative key size")]
-#[test_case("abc01"; "Alphanumeric key size")]
-fn key_size(key_size: &str) {
+#[rstest]
+#[case::zero_key_size("0")]
+#[case::negative_key_size("-8")]
+#[case::alphanumeric_key_size("abc01")]
+fn validate_key_size(#[case] key_size: &str) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
     let mut responses: Vec<Response> = Vec::new();
@@ -51,10 +52,11 @@ fn key_size(key_size: &str) {
     }
 }
 
-#[test_case("0"; "Zero requested keys")]
-#[test_case("-8"; "Negative number of keys requested")]
-#[test_case("abc01"; "Alphanumeric number of requested keys")]
-fn num_keys(num_keys: &str) {
+#[rstest]
+#[case::zero_requested_keys("0")]
+#[case::negative_number_of_keys_requested("-8")]
+#[case::alphanumeric_number_of_requested_keys("abc01")]
+fn validate_num_keys(#[case] num_keys: &str) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
     let mut responses: Vec<Response> = Vec::new();
@@ -86,12 +88,13 @@ fn num_keys(num_keys: &str) {
     }
 }
 
-#[test_case(vec!["additional_sae_1234", " "]; "Invalid additional SAE ID supplied")]
-#[test_case(vec!["additional_sae_1234", "additional_sae_1234"]; "Duplicate additional SAE IDs")]
-#[test_case(vec![&CONFIG.master_sae_id]; "Duplicate additional SAE ID with slave")]
-#[test_case(vec![&CONFIG.master_sae_id]; "Duplicate additional SAE ID with master")]
-#[test_case(vec![]; "Empty SAE ID list")]
-fn additional_sae_ids(additional_slave_sae_ids: std::vec::Vec<&str>) {
+#[rstest]
+#[case::empty_additional_sae_id_supplied(vec!["additional_sae_1234", " "])]
+#[case::invalid_additional_sae_id_supplied(vec!["additional_sae_1234", "additional_sae_1234"])]
+#[case::duplicate_additional_sae_id_with_slave(vec![CONFIG.slave_sae_id.as_str()])]
+#[case::duplicate_additional_sae_id_with_master(vec![CONFIG.master_sae_id.as_str()])]
+#[case::empty_sae_id_list(vec![])]
+fn additional_sae_ids(#[case] additional_slave_sae_ids: std::vec::Vec<&str>) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
 
@@ -250,9 +253,10 @@ fn key_id() {
     }
 }
 
-#[test_case(Method::GET; "Using GET")]
-#[test_case(Method::POST; "Using POST")]
-fn num_keys_requested_equals_returned(request_method: Method) {
+#[rstest]
+#[case::using_get(Method::GET)]
+#[case::using_post(Method::POST)]
+fn num_keys_requested_equals_returned(#[case] request_method: Method) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
     let num_keys = 5;
@@ -286,9 +290,10 @@ fn num_keys_requested_equals_returned(request_method: Method) {
     assert_eq!(returned_keys.keys.len(), num_keys);
 }
 
-#[test_case(Method::GET; "Using GET")]
-#[test_case(Method::POST; "Using POST")]
-fn key_body(request_method: Method) {
+#[rstest]
+#[case::using_get(Method::GET)]
+#[case::using_post(Method::POST)]
+fn key_body(#[case] request_method: Method) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
     let num_keys = 3;
