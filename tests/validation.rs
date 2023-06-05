@@ -17,9 +17,9 @@ use serde_json::json;
 use uuid::Uuid;
 
 #[rstest]
-#[case("0")] // "Zero key size")
-#[case("-8")] // "Negative key size")
-#[case("abc01")] // "Alphanumeric key size")
+#[case::zero_key_size("0")]
+#[case::negative_key_size("-8")]
+#[case::alphanumeric_key_size("abc01")]
 fn validate_key_size(#[case] key_size: &str) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
@@ -53,9 +53,9 @@ fn validate_key_size(#[case] key_size: &str) {
 }
 
 #[rstest]
-#[case("0")] // "Zero requested keys")
-#[case("-8")] // "Negative number of keys requested")
-#[case("abc01")] // "Alphanumeric number of requested keys")
+#[case::zero_requested_keys("0")]
+#[case::negative_number_of_keys_requested("-8")]
+#[case::alphanumeric_number_of_requested_keys("abc01")]
 fn validate_num_keys(#[case] num_keys: &str) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
@@ -89,11 +89,11 @@ fn validate_num_keys(#[case] num_keys: &str) {
 }
 
 #[rstest]
-#[case(vec!["additional_sae_1234", " "])] // "Invalid additional SAE ID supplied"
-#[case(vec!["additional_sae_1234", "additional_sae_1234"])] // "Invalid additional SAE ID supplied"
-#[case(vec![CONFIG.slave_sae_id.as_str()])] // "Duplicate additional SAE ID with slave"
-#[case(vec![CONFIG.master_sae_id.as_str()])] // "Duplicate additional SAE ID with master"
-#[case(vec![])] // "Empty SAE ID list"
+#[case::empty_additional_sae_id_supplied(vec!["additional_sae_1234", " "])]
+#[case::invalid_additional_sae_id_supplied(vec!["additional_sae_1234", "additional_sae_1234"])]
+#[case::duplicate_additional_sae_id_with_slave(vec![CONFIG.slave_sae_id.as_str()])]
+#[case::duplicate_additional_sae_id_with_master(vec![CONFIG.master_sae_id.as_str()])]
+#[case::empty_sae_id_list(vec![])]
 fn additional_sae_ids(#[case] additional_slave_sae_ids: std::vec::Vec<&str>) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
@@ -254,8 +254,8 @@ fn key_id() {
 }
 
 #[rstest]
-#[case(Method::GET)] // Using GET
-#[case(Method::POST)] // Using POST
+#[case::using_get(Method::GET)]
+#[case::using_post(Method::POST)]
 fn num_keys_requested_equals_returned(#[case] request_method: Method) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
@@ -291,8 +291,8 @@ fn num_keys_requested_equals_returned(#[case] request_method: Method) {
 }
 
 #[rstest]
-#[case(Method::GET)] // Using GET
-#[case(Method::POST)] // Using POST
+#[case::using_get(Method::GET)]
+#[case::using_post(Method::POST)]
 fn key_body(#[case] request_method: Method) {
     let client = common::build_client(&CONFIG.master_sae_crt);
     let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);

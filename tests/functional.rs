@@ -16,8 +16,8 @@ use rstest::rstest;
 use serde_json::json;
 
 #[rstest]
-#[case(Method::GET)] // Using GET
-#[case(Method::POST)] // Using POST
+#[case::using_get(Method::GET)]
+#[case::using_post(Method::POST)]
 fn successful_key_request_and_retrieval(#[case] request_method: Method) {
     let enc_keys_url =
         format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
@@ -86,8 +86,8 @@ fn successful_key_request_and_retrieval(#[case] request_method: Method) {
 }
 
 #[rstest]
-#[case(Method::GET)] // Using GET
-#[case(Method::POST)] // Using POST
+#[case::using_get(Method::GET)]
+#[case::using_post(Method::POST)]
 fn unauthorized_access(#[case] request_method: Method) {
     let enc_keys_url =
         format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
@@ -143,8 +143,8 @@ fn unauthorized_access(#[case] request_method: Method) {
 }
 
 #[rstest]
-#[case(Method::GET)] // Using GET
-#[case(Method::POST)] // Using POST
+#[case::using_get(Method::GET)]
+#[case::using_post(Method::POST)]
 fn additional_slave_sae_ids(#[case] request_method: Method) {
     let enc_keys_url =
         format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
@@ -200,8 +200,8 @@ fn additional_slave_sae_ids(#[case] request_method: Method) {
 }
 
 #[rstest]
-#[case(Method::GET)] // Using GET
-#[case(Method::POST)] // Using POST
+#[case::using_get(Method::GET)]
+#[case::using_post(Method::POST)]
 fn default_values_match_status_reply(#[case] request_method: Method) {
     let status_url =
         format!("{}/{}/status", CONFIG.base_url, CONFIG.slave_sae_id);
