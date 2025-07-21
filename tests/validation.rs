@@ -22,7 +22,10 @@ use uuid::Uuid;
 #[case::alphanumeric_key_size("abc01")]
 fn validate_key_size(#[case] key_size: &str) {
     let client = common::build_client(&CONFIG.master_sae_crt);
-    let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
+    let url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
     let mut responses: Vec<Response> = Vec::new();
 
     responses
@@ -58,7 +61,10 @@ fn validate_key_size(#[case] key_size: &str) {
 #[case::alphanumeric_number_of_requested_keys("abc01")]
 fn validate_num_keys(#[case] num_keys: &str) {
     let client = common::build_client(&CONFIG.master_sae_crt);
-    let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
+    let url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
     let mut responses: Vec<Response> = Vec::new();
 
     responses
@@ -96,7 +102,10 @@ fn validate_num_keys(#[case] num_keys: &str) {
 #[case::empty_sae_id_list(vec![])]
 fn additional_sae_ids(#[case] additional_slave_sae_ids: std::vec::Vec<&str>) {
     let client = common::build_client(&CONFIG.master_sae_crt);
-    let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
+    let url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
 
     let response = client
         .post(url)
@@ -124,8 +133,8 @@ fn empty_sae_id_in_path() {
     // The test can be updated such that it first gets a key and then calls the
     // endpoint, but that is more of a functional test, than validation test.
     let client = common::build_client(&CONFIG.master_sae_crt);
-    let enc_keys_url = format!("{}/ /enc_keys", CONFIG.base_url);
-    let dec_keys_url = format!("{}/ /dec_keys", CONFIG.base_url);
+    let enc_keys_url = format!("{}/ /enc_keys", CONFIG.master_base_url);
+    let dec_keys_url = format!("{}/ /dec_keys", CONFIG.slave_base_url);
     let sample_key_id = Uuid::new_v4();
     let mut responses: Vec<Response> = Vec::new();
 
@@ -173,10 +182,14 @@ fn identical_sae_ids() {
     // The test can be updated such that it first gets a key and then calls the
     // endpoint, but that is more of a functional test, than validation test.
     let client = common::build_client(&CONFIG.master_sae_crt);
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.master_sae_id);
-    let dec_keys_url =
-        format!("{}/{}/dec_keys", CONFIG.base_url, CONFIG.master_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.master_sae_id
+    );
+    let dec_keys_url = format!(
+        "{}/{}/dec_keys",
+        CONFIG.slave_base_url, CONFIG.master_sae_id
+    );
     let sample_key_id = Uuid::new_v4();
     let mut responses: Vec<Response> = Vec::new();
 
@@ -219,7 +232,10 @@ fn identical_sae_ids() {
 #[test]
 fn key_id() {
     let client = common::build_client(&CONFIG.slave_sae_crt);
-    let url = format!("{}/{}/dec_keys", CONFIG.base_url, CONFIG.master_sae_id);
+    let url = format!(
+        "{}/{}/dec_keys",
+        CONFIG.slave_base_url, CONFIG.master_sae_id
+    );
     let invalid_key_id = "non-uuid";
     let mut responses: Vec<Response> = Vec::new();
 
@@ -258,7 +274,10 @@ fn key_id() {
 #[case::using_post(Method::POST)]
 fn num_keys_requested_equals_returned(#[case] request_method: Method) {
     let client = common::build_client(&CONFIG.master_sae_crt);
-    let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
+    let url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
     let num_keys = 5;
 
     // Request a key
@@ -295,7 +314,10 @@ fn num_keys_requested_equals_returned(#[case] request_method: Method) {
 #[case::using_post(Method::POST)]
 fn key_body(#[case] request_method: Method) {
     let client = common::build_client(&CONFIG.master_sae_crt);
-    let url = format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
+    let url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
     let num_keys = 3;
     let key_size_bits = 1024;
     let key_size_bytes = key_size_bits / 8;
@@ -338,7 +360,8 @@ fn key_body(#[case] request_method: Method) {
 #[test]
 fn status() {
     let client = common::build_client(&CONFIG.master_sae_crt);
-    let url = format!("{}/{}/status", CONFIG.base_url, CONFIG.slave_sae_id);
+    let url =
+        format!("{}/{}/status", CONFIG.master_base_url, CONFIG.slave_sae_id);
 
     let response = client.get(&url).send().unwrap();
     assert_eq!(response.status(), StatusCode::OK);

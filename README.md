@@ -1,10 +1,12 @@
-# Description
+# ETSI-GS-QKD-014 test suite
+
+## Description
 
 This project provides a host of tests that verify compliance to the
 [ETSI GS QKD 014 v1.1.1](https://www.etsi.org/deliver/etsi_gs/QKD/001_099/014/01.01.01_60/gs_QKD014v010101p.pdf)
 standard.
 
-# Test description
+## Test description
 
 The test suite provides two sets of tests: functional and validation tests.
 
@@ -21,7 +23,7 @@ Validation tests (located at `tests/validation.rs`) are tests that ensures that
 the web service is able to handle incorrect data and return the appropriate
 error messages.
 
-# Using the test suite
+## Using the test suite
 
 A `makefile` is provided in the root directory of this project that contains
 commands showing how to build and run the tests.
@@ -30,6 +32,7 @@ directory.
 However, the `makefile` can be modified to suit your needs.
 
 The provided `makefile` has three targets
+
 | Target name            | Description                              |
 |------------------------|------------------------------------------|
 | `build`                | Compiles and builds the tests.           |
@@ -54,23 +57,24 @@ actual SAE.
 Environment variables are used to set user specific values required by the
 tests.
 
-| Environment variable                     | Description                                                            |
-|------------------------------------------|------------------------------------------------------------------------|
-ETSI_014_TEST_SUITE_BASE_URL               | Base URL of the server to test.                                        |
-ETSI_014_TEST_SUITE_TLS_ROOT_CRT           | Path to the root certificate.                                          |
-ETSI_014_TEST_SUITE_MASTER_SAE_ID          | Name of the master SAE ID.                                             |
-ETSI_014_TEST_SUITE_TLS_MASTER_SAE_CERT    | Path to the certificate to associate with the master SAE ID.           |
-ETSI_014_TEST_SUITE_SLAVE_SAE_ID           | Name of the slave SAE ID.                                              |
-ETSI_014_TEST_SUITE_TLS_SLAVE_SAE_CERT     | Path to the certificate to associate with the slave SAE ID.            |
-ETSI_014_TEST_SUITE_ADD_SLAVE_SAE_ID       | Name of the additional slave SAE ID.                                   |
-ETSI_014_TEST_SUITE_TLS_ADD_SLAVE_SAE_CERT | Path to the certificate to associate with the additional slave SAE ID. |
+| Environment variable                       | Description                                                            |
+|--------------------------------------------|------------------------------------------------------------------------|
+| ETSI_014_TEST_SUITE_MASTER_BASE_URL        | Base URL of the master server to test.                                 |
+| ETSI_014_TEST_SUITE_SLAVE_BASE_URL         | Base URL of the slave server to test.                                  |
+| ETSI_014_TEST_SUITE_TLS_ROOT_CRT           | Path to the root certificate.                                          |
+| ETSI_014_TEST_SUITE_MASTER_SAE_ID          | Name of the master SAE ID.                                             |
+| ETSI_014_TEST_SUITE_TLS_MASTER_SAE_CERT    | Path to the certificate to associate with the master SAE ID.           |
+| ETSI_014_TEST_SUITE_SLAVE_SAE_ID           | Name of the slave SAE ID.                                              |
+| ETSI_014_TEST_SUITE_TLS_SLAVE_SAE_CERT     | Path to the certificate to associate with the slave SAE ID.            |
+| ETSI_014_TEST_SUITE_ADD_SLAVE_SAE_ID       | Name of the additional slave SAE ID.                                   |
+| ETSI_014_TEST_SUITE_TLS_ADD_SLAVE_SAE_CERT | Path to the certificate to associate with the additional slave SAE ID. |
 
-# Certificate generation
+## Certificate generation
 
 A comprehensive guide on how to generate authentication certificates can be
 found in the ETSI GS QKD 014 reference implementation [repository](https://github.com/cybermerqury/etsi-gs-qkd-014-referenceimplementation/blob/main/README.md#certificates).
 
-# License
+## License
 
 © 2023 Merqury Cybersecurity Ltd.
 
@@ -80,7 +84,7 @@ commercial use of this product.
 If you would like to use this product in a commercial environment, kindly
 contact us on [info@merqury.eu](mailto:info@merqury.eu).
 
-# Acknowledgements
+## Acknowledgements
 
 This software has been developed in the projects EQUO (European QUantum
 ecOsystems) which is funded by the European Commission in the Digital Europe

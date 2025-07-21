@@ -19,10 +19,14 @@ use serde_json::json;
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
 fn successful_key_request_and_retrieval(#[case] request_method: Method) {
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
-    let dec_keys_url =
-        format!("{}/{}/dec_keys", CONFIG.base_url, CONFIG.master_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
+    let dec_keys_url = format!(
+        "{}/{}/dec_keys",
+        CONFIG.slave_base_url, CONFIG.master_sae_id
+    );
     let master_client = common::build_client(&CONFIG.master_sae_crt);
     let slave_client = common::build_client(&CONFIG.slave_sae_crt);
 
@@ -89,10 +93,14 @@ fn successful_key_request_and_retrieval(#[case] request_method: Method) {
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
 fn unauthorized_access(#[case] request_method: Method) {
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
-    let dec_keys_url =
-        format!("{}/{}/dec_keys", CONFIG.base_url, CONFIG.master_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
+    let dec_keys_url = format!(
+        "{}/{}/dec_keys",
+        CONFIG.slave_base_url, CONFIG.master_sae_id
+    );
     let master_client = common::build_client(&CONFIG.master_sae_crt);
     let unauthorized_client = common::build_client(&CONFIG.add_slave_sae_crt);
 
@@ -116,7 +124,7 @@ fn unauthorized_access(#[case] request_method: Method) {
     assert!(enc_keys_response.status().is_success());
 
     let key = match enc_keys_response.json::<key::KeyContainer>() {
-        Ok(parsed_body) => parsed_body.keys.get(0).unwrap().clone(),
+        Ok(parsed_body) => parsed_body.keys.first().unwrap().clone(),
         Err(e) => {
             panic!("Invalid response given. Error: {:?}", e);
         }
@@ -146,10 +154,14 @@ fn unauthorized_access(#[case] request_method: Method) {
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
 fn additional_slave_sae_ids(#[case] request_method: Method) {
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
-    let dec_keys_url =
-        format!("{}/{}/dec_keys", CONFIG.base_url, CONFIG.master_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
+    let dec_keys_url = format!(
+        "{}/{}/dec_keys",
+        CONFIG.slave_base_url, CONFIG.master_sae_id
+    );
     let master_client = common::build_client(&CONFIG.master_sae_crt);
     let additional_slave_client =
         common::build_client(&CONFIG.add_slave_sae_crt);
@@ -163,7 +175,7 @@ fn additional_slave_sae_ids(#[case] request_method: Method) {
     assert!(enc_keys_response.status().is_success());
 
     let key = match enc_keys_response.json::<key::KeyContainer>() {
-        Ok(parsed_body) => parsed_body.keys.get(0).unwrap().clone(),
+        Ok(parsed_body) => parsed_body.keys.first().unwrap().clone(),
         Err(e) => {
             panic!("Invalid response given. Error: {:?}", e);
         }
@@ -190,7 +202,7 @@ fn additional_slave_sae_ids(#[case] request_method: Method) {
 
     let retrieved_key_by_id =
         match dec_keys_response.json::<key::KeyContainer>() {
-            Ok(parsed_body) => parsed_body.keys.get(0).unwrap().clone(),
+            Ok(parsed_body) => parsed_body.keys.first().unwrap().clone(),
             Err(e) => {
                 panic!("Invalid response given. Error: {:?}", e);
             }
@@ -204,9 +216,11 @@ fn additional_slave_sae_ids(#[case] request_method: Method) {
 #[case::using_post(Method::POST)]
 fn default_values_match_status_reply(#[case] request_method: Method) {
     let status_url =
-        format!("{}/{}/status", CONFIG.base_url, CONFIG.slave_sae_id);
-    let enc_keys_url =
-        format!("{}/{}/enc_keys", CONFIG.base_url, CONFIG.slave_sae_id);
+        format!("{}/{}/status", CONFIG.master_base_url, CONFIG.slave_sae_id);
+    let enc_keys_url = format!(
+        "{}/{}/enc_keys",
+        CONFIG.master_base_url, CONFIG.slave_sae_id
+    );
     let client = common::build_client(&CONFIG.master_sae_crt);
 
     // Request status

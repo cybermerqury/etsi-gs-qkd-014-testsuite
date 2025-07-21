@@ -12,6 +12,7 @@ pub fn build_client(client_pem_path: &str) -> reqwest::blocking::Client {
         .identity(load_identity(client_pem_path))
         .min_tls_version(reqwest::tls::Version::TLS_1_3)
         .danger_accept_invalid_certs(false)
+        .timeout(std::time::Duration::from_secs(30))
         .use_rustls_tls()
         .build()
         .unwrap()
