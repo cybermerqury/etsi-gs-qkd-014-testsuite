@@ -49,7 +49,7 @@ async fn successful_key_request_and_retrieval(#[case] request_method: Method) {
         }
     };
 
-    assert!(enc_keys_response.status().is_success());
+    assert_eq!(enc_keys_response.status(), StatusCode::OK);
 
     let returned_keys =
         match enc_keys_response.json::<key::KeyContainer>().await {
@@ -82,7 +82,7 @@ async fn successful_key_request_and_retrieval(#[case] request_method: Method) {
         }
     };
 
-    assert!(dec_keys_response.status().is_success());
+    assert_eq!(dec_keys_response.status(), StatusCode::OK);
 
     let retrieved_key_by_id =
         match dec_keys_response.json::<key::KeyContainer>().await {
@@ -131,7 +131,7 @@ async fn unauthorized_access(#[case] request_method: Method) {
         }
     };
 
-    assert!(enc_keys_response.status().is_success());
+    assert_eq!(enc_keys_response.status(), StatusCode::OK);
 
     let key = match enc_keys_response.json::<key::KeyContainer>().await {
         Ok(parsed_body) => parsed_body.keys.first().unwrap().clone(),
@@ -186,7 +186,7 @@ async fn additional_slave_sae_ids(#[case] request_method: Method) {
         .await
         .unwrap();
 
-    assert!(enc_keys_response.status().is_success());
+    assert_eq!(enc_keys_response.status(), StatusCode::OK);
 
     let key = match enc_keys_response.json::<key::KeyContainer>().await {
         Ok(parsed_body) => parsed_body.keys.first().unwrap().clone(),
@@ -214,7 +214,7 @@ async fn additional_slave_sae_ids(#[case] request_method: Method) {
         }
     };
 
-    assert!(dec_keys_response.status().is_success());
+    assert_eq!(dec_keys_response.status(), StatusCode::OK);
 
     let retrieved_key_by_id =
         match dec_keys_response.json::<key::KeyContainer>().await {
@@ -260,8 +260,8 @@ async fn default_values_match_status_reply(#[case] request_method: Method) {
     };
 
     // Ensure both calls are a success
-    assert!(status_response.status().is_success());
-    assert!(enc_keys_response.status().is_success());
+    assert_eq!(status_response.status(), StatusCode::OK);
+    assert_eq!(enc_keys_response.status(), StatusCode::OK);
 
     // Compare the default number of keys and their size
     let status_body = match status_response.json::<Status>().await {

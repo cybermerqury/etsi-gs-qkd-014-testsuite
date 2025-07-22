@@ -86,8 +86,9 @@ async fn validate_num_keys(#[case] num_keys: &str) {
     responses.push(client.post(url).json(&json_body).send().await.unwrap());
 
     for response in responses {
-        assert!(
-            !response.status().is_success(),
+        assert_eq!(
+            response.status(),
+            StatusCode::BAD_REQUEST,
             "Success returned on invalid request"
         );
         assert!(
@@ -125,8 +126,9 @@ async fn additional_sae_ids(
         .await
         .unwrap();
 
-    assert!(
-        !response.status().is_success(),
+    assert_eq!(
+        response.status(),
+        StatusCode::BAD_REQUEST,
         "Success returned on invalid request"
     );
     assert!(
@@ -321,7 +323,7 @@ async fn num_keys_requested_equals_returned(#[case] request_method: Method) {
         }
     };
 
-    assert!(enc_keys_response.status().is_success());
+    assert_eq!(enc_keys_response.status(), StatusCode::OK);
 
     let returned_keys =
         match enc_keys_response.json::<key::KeyContainer>().await {
@@ -367,7 +369,7 @@ async fn key_body(#[case] request_method: Method) {
         }
     };
 
-    assert!(enc_keys_response.status().is_success());
+    assert_eq!(enc_keys_response.status(), StatusCode::OK);
 
     let returned_keys =
         match enc_keys_response.json::<key::KeyContainer>().await {
