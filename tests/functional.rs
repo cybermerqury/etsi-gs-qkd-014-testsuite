@@ -18,7 +18,8 @@ use serde_json::json;
 #[rstest]
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
-fn successful_key_request_and_retrieval(#[case] request_method: Method) {
+#[tokio::test]
+async fn successful_key_request_and_retrieval(#[case] request_method: Method) {
     let enc_keys_url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
@@ -27,8 +28,8 @@ fn successful_key_request_and_retrieval(#[case] request_method: Method) {
         "{}/{}/dec_keys",
         CONFIG.slave_base_url, CONFIG.master_sae_id
     );
-    let master_client = common::build_client(&CONFIG.master_sae_crt);
-    let slave_client = common::build_client(&CONFIG.slave_sae_crt);
+    let master_client = common::build_client(&CONFIG.master_sae_crt).await;
+    let slave_client = common::build_client(&CONFIG.slave_sae_crt).await;
 
     // Request a key
     let enc_keys_response = match request_method {
@@ -36,10 +37,12 @@ fn successful_key_request_and_retrieval(#[case] request_method: Method) {
             .request(request_method.clone(), enc_keys_url)
             .query(&[("number", 1)])
             .send()
+            .await
             .unwrap(),
         Method::POST => master_client
             .request(request_method.clone(), enc_keys_url)
             .send()
+            .await
             .unwrap(),
         _ => {
             panic!("Only 'GET' and 'POST' methods are supported")
@@ -48,12 +51,13 @@ fn successful_key_request_and_retrieval(#[case] request_method: Method) {
 
     assert!(enc_keys_response.status().is_success());
 
-    let returned_keys = match enc_keys_response.json::<key::KeyContainer>() {
-        Ok(parsed_body) => parsed_body,
-        Err(e) => {
-            panic!("Invalid response given. Error: {:?}", e);
-        }
-    };
+    let returned_keys =
+        match enc_keys_response.json::<key::KeyContainer>().await {
+            Ok(parsed_body) => parsed_body,
+            Err(e) => {
+                panic!("Invalid response given. Error: {:?}", e);
+            }
+        };
 
     // Request the key retrieved based on its id
     let dec_keys_response = match request_method {
@@ -64,12 +68,14 @@ fn successful_key_request_and_retrieval(#[case] request_method: Method) {
                 .request(request_method, dec_keys_url)
                 .query(&[("key_ID", returned_keys.keys[0].key_id)])
                 .send()
+                .await
                 .unwrap()
         }
         Method::POST => slave_client
             .request(request_method, dec_keys_url)
             .json(&returned_keys)
             .send()
+            .await
             .unwrap(),
         _ => {
             panic!("Only 'GET' and 'POST' methods are supported")
@@ -79,7 +85,7 @@ fn successful_key_request_and_retrieval(#[case] request_method: Method) {
     assert!(dec_keys_response.status().is_success());
 
     let retrieved_key_by_id =
-        match dec_keys_response.json::<key::KeyContainer>() {
+        match dec_keys_response.json::<key::KeyContainer>().await {
             Ok(parsed_body) => parsed_body,
             Err(e) => {
                 panic!("Invalid response given. Error: {:?}", e);
@@ -92,7 +98,8 @@ fn successful_key_request_and_retrieval(#[case] request_method: Method) {
 #[rstest]
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
-fn unauthorized_access(#[case] request_method: Method) {
+#[tokio::test]
+async fn unauthorized_access(#[case] request_method: Method) {
     let enc_keys_url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
@@ -101,8 +108,9 @@ fn unauthorized_access(#[case] request_method: Method) {
         "{}/{}/dec_keys",
         CONFIG.slave_base_url, CONFIG.master_sae_id
     );
-    let master_client = common::build_client(&CONFIG.master_sae_crt);
-    let unauthorized_client = common::build_client(&CONFIG.add_slave_sae_crt);
+    let master_client = common::build_client(&CONFIG.master_sae_crt).await;
+    let unauthorized_client =
+        common::build_client(&CONFIG.add_slave_sae_crt).await;
 
     // Request a key
     let enc_keys_response = match request_method {
@@ -110,11 +118,13 @@ fn unauthorized_access(#[case] request_method: Method) {
             .request(request_method.clone(), enc_keys_url)
             .query(&[("number", 1)])
             .send()
+            .await
             .unwrap(),
         Method::POST => master_client
             .request(request_method.clone(), enc_keys_url)
             .json(&json!({"number": 1}))
             .send()
+            .await
             .unwrap(),
         _ => {
             panic!("Only 'GET' and 'POST' methods are supported")
@@ -123,7 +133,7 @@ fn unauthorized_access(#[case] request_method: Method) {
 
     assert!(enc_keys_response.status().is_success());
 
-    let key = match enc_keys_response.json::<key::KeyContainer>() {
+    let key = match enc_keys_response.json::<key::KeyContainer>().await {
         Ok(parsed_body) => parsed_body.keys.first().unwrap().clone(),
         Err(e) => {
             panic!("Invalid response given. Error: {:?}", e);
@@ -136,11 +146,13 @@ fn unauthorized_access(#[case] request_method: Method) {
             .request(request_method, dec_keys_url)
             .query(&[("key_ID", key.key_id)])
             .send()
+            .await
             .unwrap(),
         Method::POST => unauthorized_client
             .request(request_method, dec_keys_url)
             .json(&json!({ "key_IDs": [key] }))
             .send()
+            .await
             .unwrap(),
         _ => {
             panic!("Only 'GET' and 'POST' methods are supported")
@@ -153,7 +165,8 @@ fn unauthorized_access(#[case] request_method: Method) {
 #[rstest]
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
-fn additional_slave_sae_ids(#[case] request_method: Method) {
+#[tokio::test]
+async fn additional_slave_sae_ids(#[case] request_method: Method) {
     let enc_keys_url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
@@ -162,19 +175,20 @@ fn additional_slave_sae_ids(#[case] request_method: Method) {
         "{}/{}/dec_keys",
         CONFIG.slave_base_url, CONFIG.master_sae_id
     );
-    let master_client = common::build_client(&CONFIG.master_sae_crt);
+    let master_client = common::build_client(&CONFIG.master_sae_crt).await;
     let additional_slave_client =
-        common::build_client(&CONFIG.add_slave_sae_crt);
+        common::build_client(&CONFIG.add_slave_sae_crt).await;
 
     let enc_keys_response = master_client
         .post(enc_keys_url)
         .json(&json!({"number": 1, "additional_slave_SAE_IDs": [CONFIG.add_slave_sae_id]}))
         .send()
+        .await
         .unwrap();
 
     assert!(enc_keys_response.status().is_success());
 
-    let key = match enc_keys_response.json::<key::KeyContainer>() {
+    let key = match enc_keys_response.json::<key::KeyContainer>().await {
         Ok(parsed_body) => parsed_body.keys.first().unwrap().clone(),
         Err(e) => {
             panic!("Invalid response given. Error: {:?}", e);
@@ -187,11 +201,13 @@ fn additional_slave_sae_ids(#[case] request_method: Method) {
             .request(request_method, dec_keys_url)
             .query(&[("key_ID", key.key_id)])
             .send()
+            .await
             .unwrap(),
         Method::POST => additional_slave_client
             .request(request_method, dec_keys_url)
             .json(&json!({ "key_IDs": [key] }))
             .send()
+            .await
             .unwrap(),
         _ => {
             panic!("Only 'GET' and 'POST' methods are supported")
@@ -201,7 +217,7 @@ fn additional_slave_sae_ids(#[case] request_method: Method) {
     assert!(dec_keys_response.status().is_success());
 
     let retrieved_key_by_id =
-        match dec_keys_response.json::<key::KeyContainer>() {
+        match dec_keys_response.json::<key::KeyContainer>().await {
             Ok(parsed_body) => parsed_body.keys.first().unwrap().clone(),
             Err(e) => {
                 panic!("Invalid response given. Error: {:?}", e);
@@ -214,25 +230,30 @@ fn additional_slave_sae_ids(#[case] request_method: Method) {
 #[rstest]
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
-fn default_values_match_status_reply(#[case] request_method: Method) {
+#[tokio::test]
+async fn default_values_match_status_reply(#[case] request_method: Method) {
     let status_url =
         format!("{}/{}/status", CONFIG.master_base_url, CONFIG.slave_sae_id);
     let enc_keys_url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
     );
-    let client = common::build_client(&CONFIG.master_sae_crt);
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
 
     // Request status
-    let status_response = client.get(&status_url).send().unwrap();
+    let status_response = client.get(&status_url).send().await.unwrap();
     // Request a key with the default values
     let enc_keys_response = match request_method {
-        Method::GET => {
-            client.request(request_method.clone(), enc_keys_url).send().unwrap()
-        }
-        Method::POST => {
-            client.request(request_method.clone(), enc_keys_url).send().unwrap()
-        }
+        Method::GET => client
+            .request(request_method.clone(), enc_keys_url)
+            .send()
+            .await
+            .unwrap(),
+        Method::POST => client
+            .request(request_method.clone(), enc_keys_url)
+            .send()
+            .await
+            .unwrap(),
         _ => {
             panic!("Only 'GET' and 'POST' methods are supported")
         }
@@ -243,19 +264,20 @@ fn default_values_match_status_reply(#[case] request_method: Method) {
     assert!(enc_keys_response.status().is_success());
 
     // Compare the default number of keys and their size
-    let status_body = match status_response.json::<Status>() {
+    let status_body = match status_response.json::<Status>().await {
         Ok(val) => val,
         Err(e) => {
             panic!("Invalid '/status' response given. Error: {:?}", e);
         }
     };
 
-    let key_container = match enc_keys_response.json::<key::KeyContainer>() {
-        Ok(parsed_body) => parsed_body,
-        Err(e) => {
-            panic!("Invalid response given. Error: {:?}", e);
-        }
-    };
+    let key_container =
+        match enc_keys_response.json::<key::KeyContainer>().await {
+            Ok(parsed_body) => parsed_body,
+            Err(e) => {
+                panic!("Invalid response given. Error: {:?}", e);
+            }
+        };
 
     // The default number of keys is 1.
     assert_eq!(key_container.keys.len(), 1);

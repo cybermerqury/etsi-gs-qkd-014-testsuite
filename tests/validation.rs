@@ -11,7 +11,7 @@ use base64::Engine;
 use common::config::CONFIG;
 use models::{error_message::ErrorMessage, key, status::Status};
 use pretty_assertions::assert_eq;
-use reqwest::{blocking::Response, Method, StatusCode};
+use reqwest::{Method, Response, StatusCode};
 use rstest::rstest;
 use serde_json::json;
 use uuid::Uuid;
@@ -20,16 +20,18 @@ use uuid::Uuid;
 #[case::zero_key_size("0")]
 #[case::negative_key_size("-8")]
 #[case::alphanumeric_key_size("abc01")]
-fn validate_key_size(#[case] key_size: &str) {
-    let client = common::build_client(&CONFIG.master_sae_crt);
+#[tokio::test]
+async fn validate_key_size(#[case] key_size: &str) {
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
     let url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
     );
     let mut responses: Vec<Response> = Vec::new();
 
-    responses
-        .push(client.get(&url).query(&[("size", key_size)]).send().unwrap());
+    responses.push(
+        client.get(&url).query(&[("size", key_size)]).send().await.unwrap(),
+    );
 
     let json_body = match key_size.parse::<i64>() {
         Ok(numeric_key_size) => {
@@ -40,12 +42,12 @@ fn validate_key_size(#[case] key_size: &str) {
         }
     };
 
-    responses.push(client.post(&url).json(&json_body).send().unwrap());
+    responses.push(client.post(&url).json(&json_body).send().await.unwrap());
 
     for response in responses {
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 
-        let resp_body = response.text().unwrap();
+        let resp_body = response.text().await.unwrap();
 
         assert!(
             serde_json::from_str::<ErrorMessage>(&resp_body).is_ok(),
@@ -59,16 +61,18 @@ fn validate_key_size(#[case] key_size: &str) {
 #[case::zero_requested_keys("0")]
 #[case::negative_number_of_keys_requested("-8")]
 #[case::alphanumeric_number_of_requested_keys("abc01")]
-fn validate_num_keys(#[case] num_keys: &str) {
-    let client = common::build_client(&CONFIG.master_sae_crt);
+#[tokio::test]
+async fn validate_num_keys(#[case] num_keys: &str) {
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
     let url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
     );
     let mut responses: Vec<Response> = Vec::new();
 
-    responses
-        .push(client.get(&url).query(&[("number", num_keys)]).send().unwrap());
+    responses.push(
+        client.get(&url).query(&[("number", num_keys)]).send().await.unwrap(),
+    );
 
     let json_body = match num_keys.parse::<i64>() {
         Ok(numeric_num_keys) => {
@@ -79,7 +83,7 @@ fn validate_num_keys(#[case] num_keys: &str) {
         }
     };
 
-    responses.push(client.post(url).json(&json_body).send().unwrap());
+    responses.push(client.post(url).json(&json_body).send().await.unwrap());
 
     for response in responses {
         assert!(
@@ -87,8 +91,10 @@ fn validate_num_keys(#[case] num_keys: &str) {
             "Success returned on invalid request"
         );
         assert!(
-            serde_json::from_str::<ErrorMessage>(&response.text().unwrap())
-                .is_ok(),
+            serde_json::from_str::<ErrorMessage>(
+                &response.text().await.unwrap()
+            )
+            .is_ok(),
             "Invalid error message format returned"
         );
     }
@@ -100,8 +106,11 @@ fn validate_num_keys(#[case] num_keys: &str) {
 #[case::duplicate_additional_sae_id_with_slave(vec![CONFIG.slave_sae_id.as_str()])]
 #[case::duplicate_additional_sae_id_with_master(vec![CONFIG.master_sae_id.as_str()])]
 #[case::empty_sae_id_list(vec![])]
-fn additional_sae_ids(#[case] additional_slave_sae_ids: std::vec::Vec<&str>) {
-    let client = common::build_client(&CONFIG.master_sae_crt);
+#[tokio::test]
+async fn additional_sae_ids(
+    #[case] additional_slave_sae_ids: std::vec::Vec<&str>,
+) {
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
     let url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
@@ -113,6 +122,7 @@ fn additional_sae_ids(#[case] additional_slave_sae_ids: std::vec::Vec<&str>) {
             "additional_slave_SAE_IDs": additional_slave_sae_ids
         }))
         .send()
+        .await
         .unwrap();
 
     assert!(
@@ -120,32 +130,34 @@ fn additional_sae_ids(#[case] additional_slave_sae_ids: std::vec::Vec<&str>) {
         "Success returned on invalid request"
     );
     assert!(
-        serde_json::from_str::<ErrorMessage>(&response.text().unwrap()).is_ok(),
+        serde_json::from_str::<ErrorMessage>(&response.text().await.unwrap())
+            .is_ok(),
         "Invalid error message format returned"
     );
 }
 
-#[test]
-fn empty_sae_id_in_path() {
+#[tokio::test]
+async fn empty_sae_id_in_path() {
     // NOTE: This cannot be confirmed, because the error response of an actual
     // bad request, and when an entry is not found is the same. Suggest to
     // update the standard to return 404 when a key is not found.
     // The test can be updated such that it first gets a key and then calls the
     // endpoint, but that is more of a functional test, than validation test.
-    let client = common::build_client(&CONFIG.master_sae_crt);
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
     let enc_keys_url = format!("{}/ /enc_keys", CONFIG.master_base_url);
     let dec_keys_url = format!("{}/ /dec_keys", CONFIG.slave_base_url);
     let sample_key_id = Uuid::new_v4();
     let mut responses: Vec<Response> = Vec::new();
 
-    responses.push(client.get(&enc_keys_url).send().unwrap());
-    responses.push(client.post(&enc_keys_url).send().unwrap());
+    responses.push(client.get(&enc_keys_url).send().await.unwrap());
+    responses.push(client.post(&enc_keys_url).send().await.unwrap());
 
     responses.push(
         client
             .get(&dec_keys_url)
             .query(&[("key_ID", sample_key_id)])
             .send()
+            .await
             .unwrap(),
     );
     responses.push(
@@ -153,6 +165,7 @@ fn empty_sae_id_in_path() {
             .post(&dec_keys_url)
             .json(&json!({"key_IDs": [{"key_ID": sample_key_id}]}))
             .send()
+            .await
             .unwrap(),
     );
 
@@ -164,7 +177,7 @@ fn empty_sae_id_in_path() {
             &response.status()
         );
 
-        let response_text = response.text().unwrap();
+        let response_text = response.text().await.unwrap();
 
         assert!(
             serde_json::from_str::<ErrorMessage>(&response_text).is_ok(),
@@ -174,14 +187,14 @@ fn empty_sae_id_in_path() {
     }
 }
 
-#[test]
-fn identical_sae_ids() {
+#[tokio::test]
+async fn identical_sae_ids() {
     // NOTE: This cannot be confirmed, because the error response of an actual
     // bad request, and when an entry is not found is the same. Suggest to
     // update the standard to return 404 when a key is not found.
     // The test can be updated such that it first gets a key and then calls the
     // endpoint, but that is more of a functional test, than validation test.
-    let client = common::build_client(&CONFIG.master_sae_crt);
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
     let enc_keys_url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.master_sae_id
@@ -193,14 +206,15 @@ fn identical_sae_ids() {
     let sample_key_id = Uuid::new_v4();
     let mut responses: Vec<Response> = Vec::new();
 
-    responses.push(client.get(&enc_keys_url).send().unwrap());
-    responses.push(client.post(&enc_keys_url).send().unwrap());
+    responses.push(client.get(&enc_keys_url).send().await.unwrap());
+    responses.push(client.post(&enc_keys_url).send().await.unwrap());
 
     responses.push(
         client
             .get(&dec_keys_url)
             .query(&[("key_ID", sample_key_id)])
             .send()
+            .await
             .unwrap(),
     );
     responses.push(
@@ -208,6 +222,7 @@ fn identical_sae_ids() {
             .post(&dec_keys_url)
             .json(&json!({"key_IDs": [{"key_ID": sample_key_id}]}))
             .send()
+            .await
             .unwrap(),
     );
 
@@ -219,7 +234,7 @@ fn identical_sae_ids() {
             &response.status()
         );
 
-        let response_text = response.text().unwrap();
+        let response_text = response.text().await.unwrap();
 
         assert!(
             serde_json::from_str::<ErrorMessage>(&response_text).is_ok(),
@@ -229,9 +244,9 @@ fn identical_sae_ids() {
     }
 }
 
-#[test]
-fn key_id() {
-    let client = common::build_client(&CONFIG.slave_sae_crt);
+#[tokio::test]
+async fn key_id() {
+    let client = common::build_client(&CONFIG.slave_sae_crt).await;
     let url = format!(
         "{}/{}/dec_keys",
         CONFIG.slave_base_url, CONFIG.master_sae_id
@@ -240,7 +255,12 @@ fn key_id() {
     let mut responses: Vec<Response> = Vec::new();
 
     responses.push(
-        client.get(&url).query(&[("key_ID", invalid_key_id)]).send().unwrap(),
+        client
+            .get(&url)
+            .query(&[("key_ID", invalid_key_id)])
+            .send()
+            .await
+            .unwrap(),
     );
 
     responses.push(
@@ -248,6 +268,7 @@ fn key_id() {
             .post(&url)
             .json(&json!({"key_IDs": [{"key_ID": invalid_key_id}]}))
             .send()
+            .await
             .unwrap(),
     );
 
@@ -259,7 +280,7 @@ fn key_id() {
             &response.status()
         );
 
-        let response_text = response.text().unwrap();
+        let response_text = response.text().await.unwrap();
 
         assert!(
             serde_json::from_str::<ErrorMessage>(&response_text).is_ok(),
@@ -272,8 +293,9 @@ fn key_id() {
 #[rstest]
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
-fn num_keys_requested_equals_returned(#[case] request_method: Method) {
-    let client = common::build_client(&CONFIG.master_sae_crt);
+#[tokio::test]
+async fn num_keys_requested_equals_returned(#[case] request_method: Method) {
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
     let url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
@@ -286,11 +308,13 @@ fn num_keys_requested_equals_returned(#[case] request_method: Method) {
             .request(request_method, url)
             .query(&[("number", num_keys)])
             .send()
+            .await
             .unwrap(),
         Method::POST => client
             .request(request_method, url)
             .json(&json!({ "number": num_keys }))
             .send()
+            .await
             .unwrap(),
         _ => {
             panic!("Only 'GET' and 'POST' methods are supported")
@@ -299,12 +323,13 @@ fn num_keys_requested_equals_returned(#[case] request_method: Method) {
 
     assert!(enc_keys_response.status().is_success());
 
-    let returned_keys = match enc_keys_response.json::<key::KeyContainer>() {
-        Ok(parsed_body) => parsed_body,
-        Err(e) => {
-            panic!("Invalid response given. Error: {:?}", e);
-        }
-    };
+    let returned_keys =
+        match enc_keys_response.json::<key::KeyContainer>().await {
+            Ok(parsed_body) => parsed_body,
+            Err(e) => {
+                panic!("Invalid response given. Error: {:?}", e);
+            }
+        };
 
     assert_eq!(returned_keys.keys.len(), num_keys);
 }
@@ -312,8 +337,9 @@ fn num_keys_requested_equals_returned(#[case] request_method: Method) {
 #[rstest]
 #[case::using_get(Method::GET)]
 #[case::using_post(Method::POST)]
-fn key_body(#[case] request_method: Method) {
-    let client = common::build_client(&CONFIG.master_sae_crt);
+#[tokio::test]
+async fn key_body(#[case] request_method: Method) {
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
     let url = format!(
         "{}/{}/enc_keys",
         CONFIG.master_base_url, CONFIG.slave_sae_id
@@ -328,11 +354,13 @@ fn key_body(#[case] request_method: Method) {
             .request(request_method, url)
             .query(&[("number", 1), ("size", key_size_bits)])
             .send()
+            .await
             .unwrap(),
         Method::POST => client
             .request(request_method, url)
             .json(&json!({ "number": num_keys, "size": key_size_bits}))
             .send()
+            .await
             .unwrap(),
         _ => {
             panic!("Only 'GET' and 'POST' methods are supported")
@@ -341,12 +369,13 @@ fn key_body(#[case] request_method: Method) {
 
     assert!(enc_keys_response.status().is_success());
 
-    let returned_keys = match enc_keys_response.json::<key::KeyContainer>() {
-        Ok(parsed_body) => parsed_body,
-        Err(e) => {
-            panic!("Invalid response given. Error: {:?}", e);
-        }
-    };
+    let returned_keys =
+        match enc_keys_response.json::<key::KeyContainer>().await {
+            Ok(parsed_body) => parsed_body,
+            Err(e) => {
+                panic!("Invalid response given. Error: {:?}", e);
+            }
+        };
 
     for key in &returned_keys.keys {
         let decoding_result = base64::engine::general_purpose::STANDARD
@@ -357,16 +386,16 @@ fn key_body(#[case] request_method: Method) {
     }
 }
 
-#[test]
-fn status() {
-    let client = common::build_client(&CONFIG.master_sae_crt);
+#[tokio::test]
+async fn status() {
+    let client = common::build_client(&CONFIG.master_sae_crt).await;
     let url =
         format!("{}/{}/status", CONFIG.master_base_url, CONFIG.slave_sae_id);
 
-    let response = client.get(&url).send().unwrap();
+    let response = client.get(&url).send().await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body = response.text().unwrap();
+    let body = response.text().await.unwrap();
 
     let parsed_reply = match serde_json::from_str::<Status>(&body) {
         Ok(val) => val,

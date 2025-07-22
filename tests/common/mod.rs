@@ -4,18 +4,32 @@
 pub mod config;
 
 use config::CONFIG;
-use std::{fs::File, io::Read};
+use std::{fs::File, io::Read, time::Duration};
+use tokio::sync::OnceCell;
 
-pub fn build_client(client_pem_path: &str) -> reqwest::blocking::Client {
-    reqwest::blocking::Client::builder()
-        .add_root_certificate(load_root_certificate())
-        .identity(load_identity(client_pem_path))
-        .min_tls_version(reqwest::tls::Version::TLS_1_3)
-        .danger_accept_invalid_certs(false)
-        .timeout(std::time::Duration::from_secs(30))
-        .use_rustls_tls()
-        .build()
-        .unwrap()
+static CLIENT: OnceCell<reqwest::Client> = OnceCell::const_new();
+
+pub async fn build_client(client_pem_path: &str) -> &reqwest::Client {
+    CLIENT
+        .get_or_init(|| async move {
+            reqwest::Client::builder()
+                .add_root_certificate(load_root_certificate())
+                .identity(load_identity(client_pem_path))
+                .min_tls_version(reqwest::tls::Version::TLS_1_3)
+                .danger_accept_invalid_certs(false)
+                .timeout(std::time::Duration::from_secs(30))
+                .connection_verbose(true)
+                .connect_timeout(Duration::from_secs(1))
+                .tcp_keepalive(Duration::from_secs(5))
+                // Protects against resource-starvation for failing tests.
+                .pool_max_idle_per_host(1)
+                // Protects against resource-starvation for failing tests. Short time to detect panics sooner.
+                .pool_idle_timeout(Duration::from_secs(5))
+                .use_rustls_tls()
+                .build()
+                .unwrap()
+        })
+        .await
 }
 
 fn load_root_certificate() -> reqwest::Certificate {
